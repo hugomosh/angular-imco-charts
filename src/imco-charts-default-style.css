@@ -1,0 +1,26 @@
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-size: 10px;
+}
+
+.area {
+    fill: lightsteelblue;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+.dot {
+    fill: white;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
