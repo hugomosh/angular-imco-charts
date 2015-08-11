@@ -1,11 +1,14 @@
 {
-  "name": "angular-imco-charts",
-  "version": "0.0.1",
-  "dependencies": {
-  },
-  "devDependencies": {
-    "angular": "latest",
-    "angular-mocks": "latest",
-    "jquery": "latest"
-  }
+    "name": "angular-imco-charts",
+    "version": "0.0.2",
+    "dependencies": {},
+    "devDependencies": {
+        "angular": "latest",
+        "angular-mocks": "latest",
+        "jquery": "latest"
+    },
+    "main": [
+        "src/angular-imco-charts.js",
+        "src/imco-charts-dafault-sytle.css",
+    ]
 }
