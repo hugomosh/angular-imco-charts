@@ -9,6 +9,6 @@
     },
     "main": [
         "src/angular-imco-charts.js",
-        "src/imco-charts-dafault-sytle.css",
+        "src/imco-charts-dafault-sytle.css"
     ]
 }
