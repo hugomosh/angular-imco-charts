@@ -176,187 +176,147 @@ angular.module('imco.charts', [])
             },
             template: '<svg></svg>',
             link: function postLink(scope, element, iAttrs, controller) {
+                console.log(scope.chartData);
+                var svg, x, y, data, xAxis;
+                var tip;
+                var sortTimeout;
                 var d3 = $window.d3;
-
-                var charConfigDefautl = {
+                var charConfigDefault = {
                     yAxis: {
                         visible: true,
-                        text: 'Frequency',
-                        format: '.0%'
-                    }
+                        text: 'Costo ($)',
+                        space: 35,
+
+                    },
+                    format: 'g'
                 };
 
-                var margin = {
-                        top: 20,
-                        right: 40,
-                        bottom: 30,
-                        left: 60
-                    },
-                    width = element.width(),
-                    height = element.height() - margin.top - margin.bottom;
-
-                console.log(width, height);
-
-
-                var formatPercent = d3.format(".0%");
-                var rawSvg = element.find('svg')[0];
-
-                var x = d3.scale.ordinal()
-                    .rangeRoundBands([0, width], .1, 1.5);
-
-                var y = d3.scale.linear()
-                    .range([height, 0]);
-
-                var xAxis = d3.svg.axis()
-                    .scale(x)
-                    .orient("bottom");
-
-                var yAxis = d3.svg.axis()
-                    .scale(y)
-                    .orient("left")
-                    .tickFormat(formatPercent);
-
-
-                var svg = d3.select(rawSvg);
-                var minLength = Math.min(element.width(), element.height());
-                if (!minLength || minLength === 0) {
-                    minLength = 100;
+                if (!scope.config) {
+                    scope.config = charConfigDefault;
+                }
+                console.debug(scope.config);
+                if (scope.chartData) {
+                    build();
                 }
 
-                svg.attr("width", width + margin.left * 2 + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                var data = [{
-                    "letter": "A",
-                    "frequency": 0.08167
-                }, {
-                    "letter": "B",
-                    "frequency": 0.01492
-                }, {
-                    "letter": "C",
-                    "frequency": 0.0278
-                }, {
-                    "letter": "D",
-                    "frequency": 0.04253
-                }, {
-                    "letter": "E",
-                    "frequency": 0.12702
-                }, {
-                    "letter": "F",
-                    "frequency": 0.02288
-                }, {
-                    "letter": "G",
-                    "frequency": 0.02022
-                }, {
-                    "letter": "H",
-                    "frequency": 0.06094
-                }, {
-                    "letter": "I",
-                    "frequency": 0.06973
-                }, {
-                    "letter": "J",
-                    "frequency": 0.00153
-                }, {
-                    "letter": "K",
-                    "frequency": 0.00747
-                }, {
-                    "letter": "L",
-                    "frequency": 0.04025
-                }, {
-                    "letter": "M",
-                    "frequency": 0.02517
-                }, {
-                    "letter": "N",
-                    "frequency": 0.06749
-                }, {
-                    "letter": "O",
-                    "frequency": 0.07507
-                }, {
-                    "letter": "P",
-                    "frequency": 0.01929
-                }, {
-                    "letter": "Q",
-                    "frequency": 0.00098
-                }, {
-                    "letter": "R",
-                    "frequency": 0.05987
-                }, {
-                    "letter": "S",
-                    "frequency": 0.06333
-                }, {
-                    "letter": "T",
-                    "frequency": 0.09056
-                }, {
-                    "letter": "U",
-                    "frequency": 0.02758
-                }, {
-                    "letter": "V",
-                    "frequency": 0.01037
-                }, {
-                    "letter": "W",
-                    "frequency": 0.02465
-                }, {
-                    "letter": "X",
-                    "frequency": 0.0015
-                }, {
-                    "letter": "Y",
-                    "frequency": 0.01971
-                }, {
-                    "letter": "Z",
-                    "frequency": 0.00074
-                }];
 
-                data.forEach(function(d) {
-                    d.frequency = +d.frequency;
-                });
 
-                x.domain(data.map(function(d) {
-                    return d.letter;
-                }));
+                function build() {
 
-                y.domain([0, d3.max(data, function(d) {
-                    return d.frequency;
-                })]);
+                    var margin = {
+                            top: 20,
+                            right: 40,
+                            bottom: 30,
+                            left: 60
+                        },
+                        width = element.width(),
+                        height = element.height() - margin.top - margin.bottom;
 
-                svg.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xAxis);
+                    console.log(width, height);
 
-                svg.append("g")
-                    .attr("class", "y axis")
-                    .call(yAxis)
-                    .attr("transform", "translate(30,0)")
-                    .append("text")
-                    .attr("transform", "rotate(-90)")
-                    .attr("y", 6)
-                    .attr("dy", ".71em")
-                    .style("text-anchor", "end")
-                    .text("Frequency");
 
-                svg.selectAll(".bar")
-                    .data(data)
-                    .enter()
-                    .append("rect")
-                    .attr("class", "bar")
-                    .attr("x", function(d) {
-                        return x(d.letter);
-                    })
-                    .attr("width", x.rangeBand())
-                    .attr("y", function(d) {
-                        return y(d.frequency);
-                    })
-                    .attr("height", function(d) {
-                        return height - y(d.frequency);
+                    var formatPercent = d3.format(".0%");
+                    var formatPercent = d3.format(scope.config.format || charConfigDefault.format);
+                    var charConfigDefault = {
+                        yAxis: {
+                            visible: false,
+                            text: 'Frequency',
+                            format: '.0%'
+                        }
+                    };
+
+                    var rawSvg = element.find('svg')[0];
+
+                    x = d3.scale.ordinal()
+                        .rangeRoundBands([0, width], .1, 1.5);
+
+                    y = d3.scale.linear()
+                        .range([height, 0]);
+
+                    xAxis = d3.svg.axis()
+                        .scale(x)
+                        .orient("bottom");
+
+                    var yAxis = d3.svg.axis()
+                        .scale(y)
+                        .orient("left")
+                        .tickFormat(formatPercent);
+
+
+                    svg = d3.select(rawSvg);
+                    var minLength = Math.min(element.width(), element.height());
+                    if (!minLength || minLength === 0) {
+                        minLength = 100;
+                    }
+
+                    svg.attr("width", width + margin.left * 2 + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                    tip = d3.tip()
+                        .attr('class', 'd3-tip')
+                        .offset([-10, 0])
+                        .html(function(d) {
+                            return "<strong>Frequency:</strong> <span style='color:red'>" + d.frequency + "</span>";
+                        });
+                    svg.call(tip);
+
+                    data = scope.chartData;
+                    data.forEach(function(d) {
+                        d.frequency = +d.frequency;
                     });
 
-                d3.select("input").on("change", change);
+                    x.domain(data.map(function(d) {
+                        return d.letter;
+                    }));
 
-                var sortTimeout = setTimeout(function() {
-                    d3.select("input").property("checked", true).each(change);
-                }, 2000);
+                    y.domain([0, d3.max(data, function(d) {
+                        return d.frequency;
+                    })]);
+
+                    svg.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(xAxis);
+
+                    var a = svg.append("g")
+                        .attr("class", "y axis")
+                        .call(yAxis)
+                        .attr("transform", "translate(" + scope.config.yAxis.space + ",0)");
+                    if (scope.config.yAxis.visible) {
+                        a.append("text")
+                            .attr("transform", "rotate(-90)")
+                            .attr("y", 6)
+                            .attr("dy", ".71em")
+                            .style("text-anchor", "end")
+                            .text(scope.config.yAxis.text);
+                    }
+
+                    svg.selectAll(".bar")
+                        .data(data)
+                        .enter()
+                        .append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function(d) {
+                            return x(d.letter);
+                        })
+                        .attr("width", x.rangeBand())
+                        .attr("y", function(d) {
+                            return y(d.frequency);
+                        })
+                        .attr("height", function(d) {
+                            return height - y(d.frequency);
+                        })
+                        .on('mouseover', tip.show)
+                        .on('mouseout', tip.hide);
+
+                    d3.select("input").on("change", change);
+
+                    sortTimeout = setTimeout(function() {
+                        d3.select("input").property("checked", true).each(change);
+                    }, 2000);
+                }
 
                 function change() {
                     clearTimeout(sortTimeout);

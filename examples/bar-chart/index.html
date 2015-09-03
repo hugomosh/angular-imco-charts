@@ -11,17 +11,14 @@
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(.) styles/vendor.css -->
     <!-- bower:css -->
-    <!-- <link rel="stylesheet" src="imco-charts-dafault-sytle.css" />
- -->
+    <link rel="stylesheet" href="imco-charts-dafault-sytle.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
     <!-- endbuild -->
     <style>
     body {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        position: relative;
-        width: 100%;
+        font: 10px sans-serif;
     }
     
     .axis text {
@@ -44,6 +41,39 @@
         display: none;
     }
     
+    .bar:hover {
+        fill-opacity: 1;
+    }
+    
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+    }
+    /* Creates a small triangle extender for the tooltip */
+    
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+    }
+    /* Style northward tooltips differently */
+    
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+    }
+    
     label {
         position: absolute;
         top: 10px;
@@ -60,7 +90,7 @@
     <p>
         <label>
             <input type="checkbox"> Sort values</label>
-        <div imco-bar-chart style="height:700px;"></div>
+        <div imco-bar-chart style="height:700px;" chart-data="dataTest2"></div>
     </p>
     <p>
         <div imco-arc-chart porcentaje="'40'" funcioncolor="funColor" texto="'º'" class="dona-detalles"></div>
@@ -93,6 +123,7 @@
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/d3-tip/index.js"></script>
     <script src="angular-imco-charts.js"></script>
     <!-- endbuild -->
     <!-- build:js({.tmp,app}) scripts/scripts.js -->

@@ -1,7 +1,9 @@
 {
     "name": "angular-imco-charts",
-    "version": "0.0.2",
-    "dependencies": {},
+    "version": "0.0.3",
+    "dependencies": {
+        "d3-tip": "~0.6.7"
+    },
     "devDependencies": {
         "angular": "latest",
         "angular-mocks": "latest",
