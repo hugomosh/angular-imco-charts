@@ -24,3 +24,74 @@
     stroke: steelblue;
     stroke-width: 1.5px;
 }
+
+.bar-chart {
+    /*max-width: 100%;*/
+}
+
+.bar-chart .axis text {
+    font: 10px sans-serif;
+}
+
+.bar-chart .axis path,
+.bar-chart .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.bar {
+    fill: steelblue;
+    fill-opacity: .5;
+}
+
+.bar.active {
+    fill-opacity: 1;
+}
+
+.bar-chart .x.axis path {
+    display: none;
+}
+
+.bar-chart .bar:hover {
+    fill-opacity: .8;
+}
+
+.d3-tip {
+    line-height: 1;
+    /*font-weight: bold;*/
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
+
+
+/* Creates a small triangle extender for the tooltip */
+
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+
+/* Style northward tooltips differently */
+
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+.bar-chart label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

@@ -171,10 +171,11 @@ angular.module('imco.charts', [])
         return {
             restrict: 'EAC',
             scope: {
-                config: '=?',
-                chartData: '='
+                charConfig: '=?',
+                chartData: '=',
+                barClickFunction: '&?'
             },
-            template: '<svg></svg>',
+            template: '<svg class="bar-chart"></svg>',
             link: function postLink(scope, element, iAttrs, controller) {
                 console.log(scope.chartData);
                 var svg, x, y, data, xAxis;
@@ -183,32 +184,34 @@ angular.module('imco.charts', [])
                 var d3 = $window.d3;
                 var charConfigDefault = {
                     yAxis: {
-                        visible: true,
-                        text: 'Costo ($)',
+                        visible: false,
+                        text: 'Y',
                         space: 35,
 
                     },
-                    format: 'g'
+                    format: 'g',
+                    //onclick: function(){}
                 };
 
-                if (!scope.config) {
+                if (!scope.charConfig) {
                     scope.config = charConfigDefault;
+                } else {
+                    scope.config = scope.charConfig;
                 }
-                console.debug(scope.config);
+
+                console.debug(scope.charConfig);
+
                 if (scope.chartData) {
                     build();
                 }
-
-
-
 
                 function build() {
 
                     var margin = {
                             top: 20,
-                            right: 40,
-                            bottom: 30,
-                            left: 60
+                            right: 0,
+                            bottom: 10,
+                            left: 0
                         },
                         width = element.width(),
                         height = element.height() - margin.top - margin.bottom;
@@ -227,9 +230,9 @@ angular.module('imco.charts', [])
                     };
 
                     var rawSvg = element.find('svg')[0];
-
+                    //angular.element(rawSvg).html('');
                     x = d3.scale.ordinal()
-                        .rangeRoundBands([0, width], .1, 1.5);
+                        .rangeRoundBands([scope.config.yAxis.space + 10, width], .1, 0);
 
                     y = d3.scale.linear()
                         .range([height, 0]);
@@ -245,6 +248,7 @@ angular.module('imco.charts', [])
 
 
                     svg = d3.select(rawSvg);
+
                     var minLength = Math.min(element.width(), element.height());
                     if (!minLength || minLength === 0) {
                         minLength = 100;
@@ -258,7 +262,7 @@ angular.module('imco.charts', [])
                         .attr('class', 'd3-tip')
                         .offset([-10, 0])
                         .html(function(d) {
-                            return "<strong>Frequency:</strong> <span style='color:red'>" + d.frequency + "</span>";
+                            return d.tooltip;
                         });
                     svg.call(tip);
 
@@ -297,7 +301,9 @@ angular.module('imco.charts', [])
                         .data(data)
                         .enter()
                         .append("rect")
-                        .attr("class", "bar")
+                        .attr("class", function(d) {
+                            return (d.selected ? "active" : "") + " bar ";
+                        })
                         .attr("x", function(d) {
                             return x(d.letter);
                         })
@@ -309,7 +315,15 @@ angular.module('imco.charts', [])
                             return height - y(d.frequency);
                         })
                         .on('mouseover', tip.show)
-                        .on('mouseout', tip.hide);
+                        .on('mouseout', tip.hide)
+                        .on('click', function(ele) {
+                            console.debug(ele, this, 'queueue');
+                            if (scope.barClickFunction) {
+                                scope.barClickFunction({
+                                    ent: ele.entidad
+                                });
+                            }
+                        });
 
                     d3.select("input").on("change", change);
 
@@ -353,6 +367,39 @@ angular.module('imco.charts', [])
                         .selectAll("g")
                         .delay(delay);
                 }
+
+                function update(newValue) {
+                    data = newValue;
+                    console.debug('update');
+                    var x0 = x.domain(data.sort(d3.select("input").property("checked") ? function(a, b) {
+                                return b.frequency - a.frequency;
+                            } : function(a, b) {
+                                return d3.ascending(a.letter, b.letter);
+                            })
+                            .map(function(d) {
+                                return d.letter;
+                            }))
+                        .copy();
+
+                    svg.selectAll(".bar")
+                        .sort(function(a, b) {
+                            return x0(a.letter) - x0(b.letter);
+                        });
+                    svg.selectAll(".bar")
+                        .data(data)
+                        .classed("active", function(d) {
+                            (d.selected) ? console.debug(d.selected, d.letter): '';
+                            return d.selected;
+                        });
+
+
+                }
+                scope.$watch('chartData', function(newValue, oldValue) {
+                    console.debug('chartData');
+                    if (newValue && newValue !== '') {
+                        update(newValue);
+                    }
+                });
 
             },
 
