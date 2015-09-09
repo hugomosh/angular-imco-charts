@@ -177,7 +177,7 @@ angular.module('imco.charts', [])
             },
             template: '<svg class="bar-chart"></svg>',
             link: function postLink(scope, element, iAttrs, controller) {
-                console.log(scope.chartData);
+                //console.log(scope.chartData);
                 var svg, x, y, data, xAxis;
                 var tip;
                 var sortTimeout;
@@ -199,7 +199,7 @@ angular.module('imco.charts', [])
                     scope.config = scope.charConfig;
                 }
 
-                console.debug(scope.charConfig);
+                //console.debug(scope.charConfig);
 
                 if (scope.chartData) {
                     build();
@@ -216,7 +216,7 @@ angular.module('imco.charts', [])
                         width = element.width(),
                         height = element.height() - margin.top - margin.bottom;
 
-                    console.log(width, height);
+                    //console.log(width, height);
 
 
                     var formatPercent = d3.format(".0%");
@@ -317,7 +317,7 @@ angular.module('imco.charts', [])
                         .on('mouseover', tip.show)
                         .on('mouseout', tip.hide)
                         .on('click', function(ele) {
-                            console.debug(ele, this, 'queueue');
+                            //console.debug(ele, this, 'queueue');
                             if (scope.barClickFunction) {
                                 scope.barClickFunction({
                                     ent: ele.entidad
@@ -370,7 +370,7 @@ angular.module('imco.charts', [])
 
                 function update(newValue) {
                     data = newValue;
-                    console.debug('update');
+                    //console.debug('update');
                     var x0 = x.domain(data.sort(d3.select("input").property("checked") ? function(a, b) {
                                 return b.frequency - a.frequency;
                             } : function(a, b) {
@@ -388,14 +388,14 @@ angular.module('imco.charts', [])
                     svg.selectAll(".bar")
                         .data(data)
                         .classed("active", function(d) {
-                            (d.selected) ? console.debug(d.selected, d.letter): '';
+                            //(d.selected) ? console.debug(d.selected, d.letter): '';
                             return d.selected;
                         });
 
 
                 }
                 scope.$watch('chartData', function(newValue, oldValue) {
-                    console.debug('chartData');
+                    //console.debug('chartData');
                     if (newValue && newValue !== '') {
                         update(newValue);
                     }
