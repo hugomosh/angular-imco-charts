@@ -52,5 +52,7 @@ In your web page:
 _(Coming soon)_
 
 ## Examples
-_(Coming soon)_
+He empezado hacer unos examples (ahorita solo de bar-chart) y se pueden ver haciendo:
+
+    grunt serve
 
