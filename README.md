@@ -1,5 +1,8 @@
 # angular-imco-charts
 
+Ver la página con los ejemplos:
+[Example page](http://hugomosh.github.io/angular-imco-charts/)
+
         bower install angular-imco-charts
 
 #Usage 
