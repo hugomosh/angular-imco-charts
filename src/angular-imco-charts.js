@@ -34,8 +34,9 @@ angular.module('d3', [])
             };
         }
     ]);
+
 angular.module('imco.charts.bars', ['d3'])
-    .directive('imcoBars', ['d3Service', function(d3Service) {
+    .directive('imcoBarsHor', ['d3Service', function(d3Service) {
         // b
         return {
             // name: '',
@@ -85,8 +86,6 @@ angular.module('imco.charts.bars', ['d3'])
                             return d3.ascending(a.label, b.label);
                         });
                         scope.render(scope.chartData);
-                        scope.$apply();
-
 
                     });
 
@@ -137,12 +136,163 @@ angular.module('imco.charts.bars', ['d3'])
                             .append("text")
                             .attr("fill", "#fff")
                             .attr("y", function(d, i) {
-                                return i * (barHeight + barPadding) + 15;
+                                return i * (barHeight + barPadding) + 12;
                             })
                             .attr("x", 15)
                             .text(function(d) {
                                 return d.label;
                             });
+
+                    };
+
+                })
+            }
+        };
+    }])
+    .directive('imcoBars', ['d3Service', function(d3Service) {
+        // b
+        return {
+            // name: '',
+            // priority: 1,
+            // terminal: true,
+            scope: {
+                chartData: '=',
+                sortData: '=?'
+            }, // {} = isolate, true = child, false/undefined = no change
+            // controller: function($scope, $element, $attrs, $transclude) {},
+            // require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
+            // restrict: 'A', // E = Element, A = Attribute, C = Class, M = Comment
+            // template: '',
+            // templateUrl: '',
+            // replace: true,
+            // transclude: true,
+            // compile: function(tElement, tAttrs, function transclude(function(scope, cloneLinkingFn){ return function linking(scope, elm, attrs){}})),
+            link: function(scope, ele, attrs, controller) {
+                d3Service.d3().then(function(d3) {
+
+                    var margin = parseInt(attrs.margin) || 20,
+                        chartHeight = parseInt(attrs.chartHeight) || 300,
+                        barPadding = parseInt(attrs.barPadding) || 5;
+
+                    var svg = d3.select(ele[0])
+                        .append('svg')
+                        .style('width', '100%');
+
+                    // Browser onresize event
+                    window.onresize = function() {
+                        scope.$apply();
+
+                    };
+
+
+                    // Watch for resize event
+                    scope.$watch(function() {
+                        return angular.element(window)[0].innerWidth;
+                    }, function() {
+                        scope.render(scope.chartData);
+                    });
+
+                    scope.$watch('sortData', function(newValue, oldValue) {
+                        console.debug('Sort values', newValue);
+                        scope.chartData.sort(newValue ? function(a, b) {
+                            return b.val - a.val;
+                        } : function(a, b) {
+                            return d3.ascending(a.label, b.label);
+                        });
+                        scope.render(scope.chartData);
+
+                    });
+
+                    scope.render = function(data) {
+                        svg.selectAll('*').remove();
+
+                        // If we don't pass any data, return out of the element
+                        if (!data) return;
+
+                        // setup variables
+                        var width = d3.select(ele[0]).node().offsetWidth - margin,
+                            // calculate the height
+                            height = chartHeight,
+                            // Use the category20() scale function for multicolor support
+                            color = d3.scale.category20(),
+                            // our xScale
+                            yScale = d3.scale.linear()
+                            .domain([0, d3.max(data, function(d) {
+                                return d.val;
+                            })])
+                            .range([10, height]),
+                            x = d3.scale.ordinal()
+                            .rangeRoundBands([0, width], 0.1, 1),
+                            xAxis = d3.svg.axis()
+                            .scale(x)
+                            .orient("bottom"),
+                            barWidth = (width / data.length) - barPadding;
+
+                        x.domain(data.map(function(d) {
+                            return d.label;
+                        }));
+                        // set the height based on the calculations above
+                        svg.attr('height', height + 100);
+
+                        //create the rectangles for the bar chart
+                        svg.selectAll('rect')
+                            .data(data).enter()
+                            .append('rect')
+                            .attr('height', 0)
+                            .attr('width', x.rangeBand())
+                            .attr('y', function(d, i) {
+                                return chartHeight;
+                            })
+                            .attr('x', function(d, i) {
+                                return x(d.label);
+                                //return i * (barWidth + barPadding);
+                            })
+                            .attr('fill', function(d) {
+                                return color(d.val);
+                            })
+                            .transition()
+                            .duration(1000)
+                            .attr('height', function(d) {
+                                return yScale(d.val);
+                            })
+                            .attr('y', function(d, i) {
+                                return chartHeight - yScale(d.val);
+                            });
+
+
+                        svg.append("g")
+                            .attr("class", "x axis")
+                            .attr("transform", "translate(0," + chartHeight + ")")
+                            .call(xAxis)
+                            .selectAll("text")
+                            .style("text-anchor", "end")
+                            .attr("dx", "-.8em")
+                            .attr("dy", ".15em")
+                            .attr("transform", function(d) {
+                                return "rotate(-65)"
+                            });
+
+                        /* svg.append("g")
+                             .attr("transform", function(d) {
+                                 return "rotate(-88)"
+                             })
+                         svg.selectAll("text")
+                             .data(data)
+                             .enter()
+                             .append("text")
+                             .attr("fill", "#000")
+                             .attr("transform", function(d) {
+                                 return "rotate(-88)"
+                             })
+                             .attr("dy", function(d, i) {
+                                 return i * (barWidth + barPadding) + 15;
+                             })
+                             .attr("dx", function(d, i) {
+                                 return -chartHeight - 100;
+                             })
+                             .text(function(d) {
+                                 return d.label;
+                             });*/
 
                     };
 
