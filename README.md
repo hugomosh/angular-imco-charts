@@ -35,7 +35,8 @@ in the application directory:
 #Honor a quién honor merece 
 + Muy útil para crear componenetes <http://briantford.com/blog/angular-bower>
 ## Barras
-+ <http://bl.ocks.org/mbostock/3885705
++ <http://bl.ocks.org/mbostock/3885705>
++ <http://www.ng-newsletter.com/posts/d3-on-angular.html>
 
 ## Getting Started
 

@@ -1,6 +1,157 @@
 'use strict';
 
-angular.module('imco.charts', [])
+angular.module('d3', [])
+    .factory('d3Service', ['$document', '$q', '$rootScope',
+        function($document, $q, $rootScope) {
+            var d = $q.defer();
+
+            function onScriptLoad() {
+                // Load client in the browser
+                $rootScope.$apply(function() {
+                    d.resolve(window.d3);
+                });
+            }
+            // Create a script tag with d3 as the source
+            // and call our onScriptLoad callback when it
+            // has been loaded
+            var scriptTag = $document[0].createElement('script');
+            scriptTag.type = 'text/javascript';
+            scriptTag.async = true;
+            scriptTag.src = 'http://d3js.org/d3.v3.min.js';
+            scriptTag.src = 'bower_components/d3/d3.min.js';
+            scriptTag.onreadystatechange = function() {
+                if (this.readyState == 'complete') onScriptLoad();
+            }
+            scriptTag.onload = onScriptLoad;
+
+            var s = $document[0].getElementsByTagName('body')[0];
+            s.appendChild(scriptTag);
+
+            return {
+                d3: function() {
+                    return d.promise;
+                }
+            };
+        }
+    ]);
+angular.module('imco.charts.bars', ['d3'])
+    .directive('imcoBars', ['d3Service', function(d3Service) {
+        // b
+        return {
+            // name: '',
+            // priority: 1,
+            // terminal: true,
+            scope: {
+                chartData: '=',
+                sortData: '=?'
+            }, // {} = isolate, true = child, false/undefined = no change
+            // controller: function($scope, $element, $attrs, $transclude) {},
+            // require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
+            // restrict: 'A', // E = Element, A = Attribute, C = Class, M = Comment
+            // template: '',
+            // templateUrl: '',
+            // replace: true,
+            // transclude: true,
+            // compile: function(tElement, tAttrs, function transclude(function(scope, cloneLinkingFn){ return function linking(scope, elm, attrs){}})),
+            link: function(scope, ele, attrs, controller) {
+                d3Service.d3().then(function(d3) {
+
+                    var margin = parseInt(attrs.margin) || 20,
+                        barHeight = parseInt(attrs.barHeight) || 20,
+                        barPadding = parseInt(attrs.barPadding) || 5;
+
+                    var svg = d3.select(ele[0])
+                        .append('svg')
+                        .style('width', '100%');
+
+                    // Browser onresize event
+                    window.onresize = function() {
+                        scope.$apply();
+                    };
+
+
+                    // Watch for resize event
+                    scope.$watch(function() {
+                        return angular.element(window)[0].innerWidth;
+                    }, function() {
+                        scope.render(scope.chartData);
+                    });
+                    scope.$watch('sortData', function(newValue, oldValue) {
+
+                        console.debug('Sort values', newValue);
+                        scope.chartData.sort(newValue ? function(a, b) {
+                            return b.val - a.val;
+                        } : function(a, b) {
+                            return d3.ascending(a.label, b.label);
+                        });
+                        scope.render(scope.chartData);
+                        scope.$apply();
+
+
+                    });
+
+                    scope.render = function(data) {
+                        svg.selectAll('*').remove();
+
+                        // If we don't pass any data, return out of the element
+                        if (!data) return;
+
+                        // setup variables
+                        var width = d3.select(ele[0]).node().offsetWidth - margin,
+                            // calculate the height
+                            height = data.length * (barHeight + barPadding),
+                            // Use the category20() scale function for multicolor support
+                            color = d3.scale.category20(),
+                            // our xScale
+                            xScale = d3.scale.linear()
+                            .domain([0, d3.max(data, function(d) {
+                                return d.val;
+                            })])
+                            .range([0, width]);
+
+                        // set the height based on the calculations above
+                        svg.attr('height', height);
+
+                        //create the rectangles for the bar chart
+                        svg.selectAll('rect')
+                            .data(data).enter()
+                            .append('rect')
+                            .attr('height', barHeight)
+                            .attr('width', 140)
+                            .attr('x', Math.round(margin / 2))
+                            .attr('y', function(d, i) {
+                                return i * (barHeight + barPadding);
+                            })
+                            .attr('fill', function(d) {
+                                return color(d.val);
+                            })
+                            .transition()
+                            .duration(1000)
+                            .attr('width', function(d) {
+                                return xScale(d.val);
+                            });
+
+                        svg.selectAll("text")
+                            .data(data)
+                            .enter()
+                            .append("text")
+                            .attr("fill", "#fff")
+                            .attr("y", function(d, i) {
+                                return i * (barHeight + barPadding) + 15;
+                            })
+                            .attr("x", 15)
+                            .text(function(d) {
+                                return d.label;
+                            });
+
+                    };
+
+                })
+            }
+        };
+    }]);
+
+angular.module('imco.charts', ['imco.charts.bars'])
     .directive('imcoLineChart', function($window) {
         return {
             restrict: 'EAC',
@@ -13,9 +164,6 @@ angular.module('imco.charts', [])
 
                 var d3 = $window.d3;
                 var rawSvg = element.find('svg')[0];
-
-
-
 
                 var build = function build(argument) {
                     var data = scope.chartData.data;
@@ -32,7 +180,7 @@ angular.module('imco.charts', [])
                     //console.debug('Datos', data);
                     //console.log('Dominio', defaultConfig.yDomain);
                     if (!scope.config) {
-                        scope.config = defaultConfig
+                        scope.config = defaultConfig;
                     }
 
                     var margin = {
@@ -68,7 +216,7 @@ angular.module('imco.charts', [])
 
                     var line = d3.svg.line()
                         .defined(function(d) {
-                            return Number(d.y) != null;
+                            return Number(d.y) !== null;
                         })
                         .x(function(d) {
                             return x(d.x);
@@ -166,8 +314,8 @@ angular.module('imco.charts', [])
                 };
             }*/
         };
-
-    }).directive('imcoBarChart', function($window) {
+    })
+    .directive('imcoBarChart', function($window) {
         return {
             restrict: 'EAC',
             scope: {
@@ -177,7 +325,7 @@ angular.module('imco.charts', [])
             },
             template: '<svg class="bar-chart"></svg>',
             link: function postLink(scope, element, iAttrs, controller) {
-                //console.log(scope.chartData);
+                console.log(scope.chartData);
                 var svg, x, y, data, xAxis;
                 var tip;
                 var sortTimeout;
@@ -192,18 +340,6 @@ angular.module('imco.charts', [])
                     format: 'g',
                     //onclick: function(){}
                 };
-
-                if (!scope.charConfig) {
-                    scope.config = charConfigDefault;
-                } else {
-                    scope.config = scope.charConfig;
-                }
-
-                //console.debug(scope.charConfig);
-
-                if (scope.chartData) {
-                    build();
-                }
 
                 function build() {
 
@@ -331,6 +467,20 @@ angular.module('imco.charts', [])
                         d3.select("input").property("checked", true).each(change);
                     }, 2000);
                 }
+
+
+                if (!scope.charConfig) {
+                    scope.config = charConfigDefault;
+                } else {
+                    scope.config = scope.charConfig;
+                }
+
+                //console.debug(scope.charConfig);
+
+                if (scope.chartData) {
+                    build();
+                }
+
 
                 function change() {
                     clearTimeout(sortTimeout);

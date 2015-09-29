@@ -15,6 +15,7 @@ angular
     ])
     .controller('barController',
         function($scope) {
+
             $scope.dataTest = [{
                 num: '1',
                 Entidad: 'Aguascalientes',
@@ -1974,6 +1975,8 @@ angular
                     frequency: parseFloat(entidad.Costo)
                 };
             });
+
+
             console.log($scope.dataTest2);
 
             $scope.hola = "Hello bar!"
