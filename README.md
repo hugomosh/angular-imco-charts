@@ -1,15 +1,14 @@
 # angular-imco-charts
 
 Ver la página con los ejemplos:
-[Example page](http://hugomosh.github.io/angular-imco-charts/)
+[Example page](http://hugomosh.github.io/angular-imco-charts/) que esta creada en el repo: <https://github.com/hugomosh/imco-demo>
 
-        bower install angular-imco-charts
 
 #Usage 
 
 You can get it from Bower (not yet really :| has not been publish :P )
 
-    bower install angular-imco-charts
+    bower install angular-imco-charts 
 
 Load the script files in your application:
 
@@ -56,6 +55,11 @@ In your web page:
 _(Coming soon)_
 
 ## Examples
+
+Ya hice un repo sólo para ejemplos de esta y otras librérias del imco: <https://github.com/hugomosh/imco-demo>
+
+Y lo pueden ver en gh-pages aquí: <http://hugomosh.github.io/angular-imco-charts/>
+
 He empezado hacer unos examples (ahorita solo de bar-chart) y se pueden ver haciendo:
 
     grunt serve
