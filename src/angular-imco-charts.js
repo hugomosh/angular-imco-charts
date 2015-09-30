@@ -362,7 +362,7 @@ angular.module('imco.charts.bubles', ['d3'])
                         var n = data.length, // total number of nodes
                             m = regions.length; // number of distinct clusters
 
-                        var color = d3.scale.category10()
+                        var color = d3.scale.category20()
                             .domain(d3.range(m));
 
                         var clusters = new Array(m);
