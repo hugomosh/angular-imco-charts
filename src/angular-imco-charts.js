@@ -301,8 +301,254 @@ angular.module('imco.charts.bars', ['d3'])
             }
         };
     }]);
+angular.module('imco.charts.bubles', ['d3'])
+    .directive('imcoBubbles', ['d3Service', function(d3Service) {
+        // b
+        return {
+            // name: '',
+            // priority: 1,
+            // terminal: true,
+            scope: {
+                chartData: '='
+            }, // {} = isolate, true = child, false/undefined = no change
+            // controller: function($scope, $element, $attrs, $transclude) {},
+            // require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
+            // restrict: 'A', // E = Element, A = Attribute, C = Class, M = Comment
+            // template: '',
+            // templateUrl: '',
+            // replace: true,
+            // transclude: true,
+            // compile: function(tElement, tAttrs, function transclude(function(scope, cloneLinkingFn){ return function linking(scope, elm, attrs){}})),
+            link: function(scope, ele, attrs, controller) {
+                d3Service.d3().then(function(d3) {
 
-angular.module('imco.charts', ['imco.charts.bars'])
+                    var margin = parseInt(attrs.margin) || 20,
+                        height = parseInt(attrs.margin) || 1000;
+
+                    var svg = d3.select(ele[0])
+                        .append('svg')
+                        .style('width', '100%');
+
+                    // Browser onresize event
+                    window.onresize = function() {
+                        scope.$apply();
+                    };
+
+
+                    // Watch for resize event
+                    scope.$watch(function() {
+                        return angular.element(window)[0].innerWidth;
+                    }, function() {
+                        scope.render(scope.chartData);
+                    });
+
+                    scope.render = function(data) {
+                        svg.selectAll('*').remove();
+
+                        // If we don't pass any data, return out of the element
+                        if (!data) return;
+
+                        // setup variables
+                        var width = d3.select(ele[0]).node().offsetWidth - margin;
+                        var padding = 1.5, // separation between same-color nodes
+                            clusterPadding = 6, // separation between different-color nodes
+                            maxRadius = 12;
+                        var regions = ['Centro-occidente',
+                            'Noroeste',
+                            'Sur-sureste',
+                            'Noreste',
+                            'Centro'
+                        ];
+                        var n = data.length, // total number of nodes
+                            m = regions.length; // number of distinct clusters
+
+                        var color = d3.scale.category10()
+                            .domain(d3.range(m));
+
+                        var clusters = new Array(m);
+
+                        var nodesO = d3.range(n).map(function() {
+                            //o var i = Math.floor(Math.random() * m),
+                            var i = 10,
+                                r = Math.sqrt((i + 1) / m * -Math.log(Math.random())) * maxRadius,
+                                d = {
+                                    cluster: i,
+                                    radius: r
+                                };
+                            if (!clusters[i] || (r > clusters[i].radius)) clusters[i] = d;
+                            return d;
+                        });
+                        console.debug(nodesO);
+
+                        var nodes = data.map(function(elem) {
+                            var i = regions.indexOf(elem['Region']),
+                                //r = elem['2013']  1000,
+                                r = Math.sqrt(elem['2013'] / Math.PI) * 500,
+                                t = elem['Nacional'],
+                                d = {
+                                    cluster: i,
+                                    radius: r,
+                                    text: t,
+                                    pib2013: elem['2013']
+                                }
+                            if (!clusters[i] || (r > clusters[i].radius)) clusters[i] = d;
+                            return d;
+                        });
+                        console.debug(nodes);
+
+                        // Use the pack layout to initialize node positions.
+                        d3.layout.pack()
+                            .sort(null)
+                            .size([width, height])
+                            .children(function(d) {
+                                return d.values;
+                            })
+                            .value(function(d) {
+                                return d.radius * d.radius;
+                            })
+                            .nodes({
+                                values: d3.nest()
+                                    .key(function(d) {
+                                        return d.cluster;
+                                    })
+                                    .entries(nodes)
+                            });
+
+                        var force = d3.layout.force()
+                            .nodes(nodes)
+                            .size([width, height])
+                            .gravity(.02)
+                            .charge(0)
+                            .on("tick", tick)
+                            .start();
+
+                        // set the height based on the calculations above
+                        svg.attr('height', height)
+                            .attr("width", width);
+
+
+
+                        var node = svg.selectAll("circle")
+                            .data(nodes)
+                            .enter()
+                            .append("g")
+                            .call(force.drag);
+                        console.debug(node);
+                        var circle = node.append("circle")
+                            .style("fill", function(d) {
+                                return color(d.cluster);
+                            });
+
+                        var text = node.append("text").style("text-anchor", "middle");
+                        text.append("tspan")
+                            .text(function(d) {
+                                return d.text;
+                            });
+
+
+
+                        text.append("tspan")
+                            .text(function(d) {
+                                return (d.pib2013 * 100).toFixed(2) + '%';
+                            }).attr("dy", "1.2em");
+
+
+                        circle.append("scv:title")
+                            .text(function(d) {
+                                return d.text;
+                            });
+                        console.debug(node);
+
+                        circle.transition()
+                            .duration(750)
+                            .delay(function(d, i) {
+                                return i * 5;
+                            })
+                            .attrTween("r", function(d) {
+                                var i = d3.interpolate(0, d.radius);
+                                return function(t) {
+                                    return d.radius = i(t);
+                                };
+                            });
+
+                        function tick(e) {
+                            circle
+                                .each(cluster(10 * e.alpha * e.alpha))
+                                .each(collide(.5))
+                                .attr("cx", function(d) {
+                                    return d.x;
+                                })
+                                .attr("cy", function(d) {
+                                    return d.y;
+                                });
+                            text.attr("y", function(d) {
+                                    return d.y;
+                                }).attr("x", function(d) {
+                                    return d.x;
+                                }).selectAll("tspan")
+                                .attr("x", function(d) {
+                                    return d.x;
+                                });
+                            /*node.attr("translate", function(d) {
+                                return "translate(" + d.x + "," + d.y + ")";
+                            });*/
+                        }
+
+                        // Move d to be adjacent to the cluster node.
+                        function cluster(alpha) {
+                            return function(d) {
+                                var cluster = clusters[d.cluster];
+                                if (cluster === d) return;
+                                var x = d.x - cluster.x,
+                                    y = d.y - cluster.y,
+                                    l = Math.sqrt(x * x + y * y),
+                                    r = d.radius + cluster.radius;
+                                if (l != r) {
+                                    l = (l - r) / l * alpha;
+                                    d.x -= x *= l;
+                                    d.y -= y *= l;
+                                    cluster.x += x;
+                                    cluster.y += y;
+                                }
+                            };
+                        }
+
+                        // Resolves collisions between d and all other circles.
+                        function collide(alpha) {
+                            var quadtree = d3.geom.quadtree(nodes);
+                            return function(d) {
+                                var r = d.radius + maxRadius + Math.max(padding, clusterPadding),
+                                    nx1 = d.x - r,
+                                    nx2 = d.x + r,
+                                    ny1 = d.y - r,
+                                    ny2 = d.y + r;
+                                quadtree.visit(function(quad, x1, y1, x2, y2) {
+                                    if (quad.point && (quad.point !== d)) {
+                                        var x = d.x - quad.point.x,
+                                            y = d.y - quad.point.y,
+                                            l = Math.sqrt(x * x + y * y),
+                                            r = d.radius + quad.point.radius + (d.cluster === quad.point.cluster ? padding : clusterPadding);
+                                        if (l < r) {
+                                            l = (l - r) / l * alpha;
+                                            d.x -= x *= l;
+                                            d.y -= y *= l;
+                                            quad.point.x += x;
+                                            quad.point.y += y;
+                                        }
+                                    }
+                                    return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+                                });
+                            };
+                        }
+
+                    };
+
+                })
+            }
+        };
+    }]);
+
+angular.module('imco.charts', ['imco.charts.bars', 'imco.charts.bubles'])
     .directive('imcoLineChart', function($window) {
         return {
             restrict: 'EAC',
